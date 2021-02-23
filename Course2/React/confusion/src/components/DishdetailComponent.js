@@ -4,7 +4,9 @@ import { Card, CardImg, CardText, CardBody,
     ModalBody, ModalHeader, Col, Row } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { Control, LocalForm, Errors } from 'react-redux-form';
-    
+import { Loading } from './LoadingComponent';
+import { baseUrl } from '../shared/baseUrl';
+
 const maxLength = (len) => (val) => !(val) || (val.length <= len);
 const minLength = (len) => (val) => val && (val.length >= len);
 
@@ -26,9 +28,8 @@ const minLength = (len) => (val) => val && (val.length >= len);
             });
         }
 
-        handleComment(value) {
-            console.log('Current State is: ' + JSON.stringify(value));
-            alert('Current State is: ' + JSON.stringify(value));
+        handleComment(values) {
+            this.props.addComment(this.props.dishId,values.rating,values.author,values.comment);
             this.toggleCommentForm();
         }
 
@@ -55,16 +56,16 @@ const minLength = (len) => (val) => val && (val.length >= len);
                                     </Col>
                                 </Row>
                                 <Row className="form-group">
-                                    <Label htmlFor="yourname" md={12}>Your Name</Label>
+                                    <Label htmlFor="author" md={12}>Your Name</Label>
                                     <Col md={12}>    
-                                        <Control.text model=".yourname" id="yourname" name="yourname" 
+                                        <Control.text model=".author" id="author" name="author" 
                                             placeholder="Your Name" className="form-control"
                                             validators={{
                                                 maxLength:maxLength(15),minLength:minLength(3)
                                             }} />
                                         <Errors
                                             className="text-danger"
-                                            model=".yourname"
+                                            model=".author"
                                             show="touched"
                                             messages={{
                                                 minLength: 'Must be greater than 2 characters  ',
@@ -93,7 +94,7 @@ const minLength = (len) => (val) => val && (val.length >= len);
         return (
             <div className="col-12 col-md-5 m-1">
                 <Card>
-                    <CardImg top width="100%" src={dish.image} alt={dish.name} />
+                    <CardImg top width="100%" src={baseUrl + dish.image} alt={dish.name} />
                     <CardBody>
                         <CardTitle>{ dish.name }</CardTitle>
                         <CardText>{ dish.description }</CardText>
@@ -104,7 +105,7 @@ const minLength = (len) => (val) => val && (val.length >= len);
     }
 
 
-    function RenderComment({ comments }){
+    function RenderComment({ comments,addComment,dishId }){
         if(comments!=null){
             return(
                 <div className="col-12 col-md-5 m-1">
@@ -119,7 +120,7 @@ const minLength = (len) => (val) => val && (val.length >= len);
                             );
                         }))}
                     </ul>
-                    <CommentForm />
+                    <CommentForm dishId={dishId} addComment={addComment} />
                 </div>
             );
         }
@@ -129,7 +130,26 @@ const minLength = (len) => (val) => val && (val.length >= len);
     }
 
     function DishDetail(props){
-        if(props.dish!=null){
+        if (props.isLoading){
+            return (
+                <div className="container">
+                    <div className="row">
+                        <Loading />
+                    </div>
+                </div>
+            );
+        }
+        else if (props.errMess){
+            return (
+                <div className="container">
+                    <div className="row">
+                        <h4>{ props.errMess }</h4>
+                    </div>
+                </div>
+            );
+        }
+
+        else if(props.dish!=null){
             return(
                 <div className="container">
                     <div className="row">
@@ -144,7 +164,9 @@ const minLength = (len) => (val) => val && (val.length >= len);
                     </div>
                     <div className="row">
                             <RenderDish dish={props.dish} />
-                            <RenderComment comments={props.comments} /> 
+                            <RenderComment comments={props.comments}
+                            addComment = {props.addComment}
+                            dishId = {props.dish.id} /> 
                     </div>
                 </div>
 
