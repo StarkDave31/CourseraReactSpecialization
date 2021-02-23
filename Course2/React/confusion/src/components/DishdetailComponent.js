@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import { Control, LocalForm, Errors } from 'react-redux-form';
 import { Loading } from './LoadingComponent';
 import { baseUrl } from '../shared/baseUrl';
+import { FadeTransform, Fade, Stagger } from 'react-animation-components';
+
 
 const maxLength = (len) => (val) => !(val) || (val.length <= len);
 const minLength = (len) => (val) => val && (val.length >= len);
@@ -29,7 +31,7 @@ const minLength = (len) => (val) => val && (val.length >= len);
         }
 
         handleComment(values) {
-            this.props.addComment(this.props.dishId,values.rating,values.author,values.comment);
+            this.props.postComment(this.props.dishId,values.rating,values.author,values.comment);
             this.toggleCommentForm();
         }
 
@@ -93,34 +95,40 @@ const minLength = (len) => (val) => val && (val.length >= len);
     function RenderDish({ dish }){
         return (
             <div className="col-12 col-md-5 m-1">
-                <Card>
-                    <CardImg top width="100%" src={baseUrl + dish.image} alt={dish.name} />
-                    <CardBody>
-                        <CardTitle>{ dish.name }</CardTitle>
-                        <CardText>{ dish.description }</CardText>
-                    </CardBody>
-                </Card>
+                <FadeTransform in transformProps={{ exitTransform: 'scale(0.5) translateY(-50%)' }}>
+                    <Card>
+                        <CardImg top width="100%" src={baseUrl + dish.image} alt={dish.name} />
+                        <CardBody>
+                            <CardTitle>{ dish.name }</CardTitle>
+                            <CardText>{ dish.description }</CardText>
+                        </CardBody>
+                    </Card>
+                </FadeTransform>
             </div> 
         );
     }
 
 
-    function RenderComment({ comments,addComment,dishId }){
+    function RenderComment({ comments,postComment,dishId }){
         if(comments!=null){
             return(
                 <div className="col-12 col-md-5 m-1">
                     <h4>Comments</h4>
                     <ul className="list-unstyled">
+                        <Stagger in>
                         { comments.map((comment => {
                             return(
-                                <li key={comment.id}>
-                                    <p>{comment.comment}</p>
-                                    <p>-- { comment.author } , {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: '2-digit'}).format(new Date(Date.parse(comment.date)))}</p>
-                                </li>
+                                <Fade in>
+                                    <li key={comment.id}>
+                                        <p>{comment.comment}</p>
+                                        <p>-- { comment.author } , {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: '2-digit'}).format(new Date(Date.parse(comment.date)))}</p>
+                                    </li>
+                                </Fade>
                             );
                         }))}
+                        </Stagger>
                     </ul>
-                    <CommentForm dishId={dishId} addComment={addComment} />
+                    <CommentForm dishId={dishId} postComment={postComment} />
                 </div>
             );
         }
@@ -165,7 +173,7 @@ const minLength = (len) => (val) => val && (val.length >= len);
                     <div className="row">
                             <RenderDish dish={props.dish} />
                             <RenderComment comments={props.comments}
-                            addComment = {props.addComment}
+                            postComment = {props.postComment}
                             dishId = {props.dish.id} /> 
                     </div>
                 </div>
